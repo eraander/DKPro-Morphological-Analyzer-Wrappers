@@ -2,6 +2,7 @@ package org.lappsgrid.mate_tools_lapps;
 
 import de.tudarmstadt.ukp.dkpro.core.api.lexmorph.type.morph.Morpheme;
 import de.tudarmstadt.ukp.dkpro.core.api.lexmorph.type.morph.MorphologicalFeatures;
+import de.tudarmstadt.ukp.dkpro.core.matetools.MatePosTagger;
 import eu.openminted.share.annotations.api.constants.OperationType;
 import org.apache.uima.UIMAException;
 import org.apache.uima.UimaContext;
@@ -67,37 +68,21 @@ public class MateMorphTaggerLapps implements ProcessingService {
 
     private String metadata;
 
-    private static JCas jCas;
-
-    private static AnalysisEngine aEngine;
-
-    private static String aLanguage;
-
-    public static void setLanguage(String aLanguage){
-
-    }
-
-    public static AnalysisEngine getAnalysisEngine() {
-        return aEngine;
-    }
-
-    public static void setJCas(String aLanguage, String aText) {
-        jCas.setDocumentLanguage(aLanguage);
-        jCas.setDocumentText(aText);
-    }
-
-    private MateMorphTagger matemorph;
-
-    public MateMorphTaggerLapps() throws CASException, ResourceInitializationException, org.apache.uima.UIMAException {
-        metadata = generateMetadata();
-        System.out.println("done");
-        // AssumeResource.assumeResource(MateMorphTagger.class, "morphtagger", aLanguage, null);
-
+    private JCas createJCas(String language, String document) throws org.apache.uima.UIMAException{
         AnalysisEngineDescription lemma = createEngineDescription(MateLemmatizer.class);
         AnalysisEngineDescription morphTag = createEngineDescription(MateMorphTagger.class);
+        AnalysisEngineDescription posTag = createEngineDescription(MatePosTagger.class);
 
-        AnalysisEngineDescription aggregate = createEngineDescription(lemma, morphTag);
-        aEngine = createEngine(aggregate);
+        AnalysisEngineDescription aggregate = createEngineDescription(lemma, posTag, morphTag);
+        AnalysisEngine aEngine = createEngine(aggregate);
+        return TestRunner.runTest(aEngine, language, document);
+    }
+
+    public MateMorphTaggerLapps() {
+        metadata = generateMetadata();
+        // AssumeResource.assumeResource(MateMorphTagger.class, "morphtagger", aLanguage, null);
+
+
         // TypeSystemDescription type_sys_desc = TypeSystemDescriptionFactory.createTypeSystemDescription();
     }
 
@@ -144,7 +129,6 @@ public class MateMorphTaggerLapps implements ProcessingService {
             String[] lang_text = input.split("; ");
             Data input_text = new Data<>(Uri.TEXT, lang_text[1].trim());
             Data data = Serializer.parse(input_text.asJson(), Data.class);
-
             final String discriminator = data.getDiscriminator();
             if (discriminator.equals(Uri.ERROR)) {
                 return input;
@@ -171,18 +155,18 @@ public class MateMorphTaggerLapps implements ProcessingService {
                 // TokenBuilder<Token, Sentence> tb = new TokenBuilder<Token, Sentence>(Token.class,
                 //    Sentence.class);
                 // tb.buildTokens(jCas, aText);
-                JCas newCas = TestRunner.runTest(aEngine, lang_text[0], lang_text[1].trim());
+                JCas newCas = createJCas(lang_text[0], lang_text[1].trim());
                 // System.out.println(ae.getAnalysisEngineMetaData());
                 int id = -1;
-                for (Token mf : JCasUtil.select(newCas, Token.class)) {
-                    int start = mf.getBegin();
-                    int end = mf.getEnd();
+                for (Token tok : JCasUtil.select(newCas, Token.class)) {
+                    int start = tok.getBegin();
+                    int end = tok.getEnd();
                     Annotation a = view.newAnnotation("tok" + (++id), Uri.TOKEN, start, end);
                     String word = text.substring(start, end);
                     a.addFeature(Features.Token.WORD, word);
-                    a.addFeature(Features.Token.LEMMA, mf.getLemmaValue());
-                    a.addFeature(Features.Token.POS, mf.getPosValue());
-                    MorphologicalFeatures morphFeatures = mf.getMorph();
+                    a.addFeature(Features.Token.LEMMA, tok.getLemmaValue());
+                    a.addFeature(Features.Token.POS, tok.getPosValue());
+                    MorphologicalFeatures morphFeatures = tok.getMorph();
                     String morphFeatValue = morphFeatures.getValue();
                     a.addFeature("morph_tag", morphFeatValue);
                     if (!morphFeatValue.equals("_")) {

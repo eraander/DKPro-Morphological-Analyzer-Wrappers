@@ -6,7 +6,6 @@ import de.tudarmstadt.ukp.dkpro.core.rftagger.RfTagger;
 import de.tudarmstadt.ukp.dkpro.core.testing.TestRunner;
 import org.apache.uima.UIMAException;
 import org.apache.uima.analysis_engine.AnalysisEngine;
-import org.apache.uima.analysis_engine.AnalysisEngineDescription;
 import org.apache.uima.cas.CASException;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
@@ -26,7 +25,6 @@ import java.util.Map;
 import java.util.regex.PatternSyntaxException;
 
 import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngine;
-import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
 import static org.lappsgrid.discriminator.Discriminators.Uri;
 
 // import org.junit.Assume.*;
@@ -42,8 +40,12 @@ public class RfTaggerLapps implements ProcessingService {
 
     private static String aLanguage;
 
-    public static void setLanguage(String aLanguage){
-
+    public JCas createJcas(String language, String variant, String document) throws ResourceInitializationException, UIMAException {
+        AnalysisEngine rft = createEngine(RfTagger.class, RfTagger.PARAM_VARIANT, variant,
+                RfTagger.PARAM_PRINT_TAGSET, true);
+        JCas newJcas = TestRunner.runTest(rft, language, document);
+        // RfTagger.getLogger();
+        return newJcas;
     }
 
     public static AnalysisEngine getAnalysisEngine() {
@@ -63,13 +65,12 @@ public class RfTaggerLapps implements ProcessingService {
 
     public RfTaggerLapps() throws CASException, ResourceInitializationException, org.apache.uima.UIMAException {
         metadata = generateMetadata();
-        System.out.println("done");
         // AssumeResource.assumeResource(MateMorphTagger.class, "morphtagger", aLanguage, null);
 
-        AnalysisEngineDescription rftagger = createEngineDescription(RfTagger.class, RfTagger.PARAM_VARIANT, null,
-                RfTagger.PARAM_PRINT_TAGSET, true);
+        // AnalysisEngineDescription rftagger = createEngineDescription(RfTagger.class, RfTagger.PARAM_VARIANT, null,
+         //       RfTagger.PARAM_PRINT_TAGSET, true);
         // RfTagger.getLogger();
-        aEngine = createEngine(rftagger);
+        // aEngine = createEngine(rftagger);
         // TypeSystemDescription type_sys_desc = TypeSystemDescriptionFactory.createTypeSystemDescription();
     }
 
@@ -120,12 +121,10 @@ public class RfTaggerLapps implements ProcessingService {
     public String execute(String input) {
         try {
             String[] lang_text = input.split("; ");
-            Data input_text = new Data<>(Uri.TEXT, lang_text[1].trim());
-            System.out.println(input_text);
+            System.out.println(lang_text);
+            Data input_text = new Data<>(Uri.TEXT, lang_text[2].trim());
             Data data = Serializer.parse(input_text.asJson(), Data.class);
-            System.out.println("GOT TO HERE\n\n\n");
             final String discriminator = data.getDiscriminator();
-            System.out.println(discriminator);
             if (discriminator.equals(Uri.ERROR)) {
                 return input;
             }
@@ -151,21 +150,24 @@ public class RfTaggerLapps implements ProcessingService {
                 // TokenBuilder<Token, Sentence> tb = new TokenBuilder<Token, Sentence>(Token.class,
                 //    Sentence.class);
                 // tb.buildTokens(jCas, aText);
-                JCas newCas = TestRunner.runTest(aEngine, lang_text[0], lang_text[1].trim());
+                String variant = lang_text[1].trim();
+                JCas newCas;
+                if(variant.equals("null"))
+                    newCas = createJcas(lang_text[0], null, lang_text[2].trim());
+                else
+                    newCas = createJcas(lang_text[0], variant, lang_text[2].trim());
                 // System.out.println(ae.getAnalysisEngineMetaData());
                 int id = -1;
-                for (Token mf : JCasUtil.select(newCas, Token.class)) {
-                    System.out.println(mf);
-                    System.out.println("\n\n");
-                    int start = mf.getBegin();
-                    int end = mf.getEnd();
+                for (Token tok : JCasUtil.select(newCas, Token.class)) {
+                    int start = tok.getBegin();
+                    int end = tok.getEnd();
                     Annotation a = view.newAnnotation("tok" + (++id), Uri.TOKEN, start, end);
                     String word = text.substring(start, end);
                     a.addFeature(Features.Token.WORD, word);
-                    a.addFeature(Features.Token.LEMMA, mf.getLemmaValue());
-                    a.addFeature(Features.Token.POS, mf.getPosValue());
-                    a.addFeature("pos_mapped", mf.getPos().getType().getShortName());
-                    MorphologicalFeatures morphFeatures = mf.getMorph();
+                    a.addFeature(Features.Token.LEMMA, tok.getLemmaValue());
+                    a.addFeature(Features.Token.POS, tok.getPosValue());
+                    a.addFeature("pos_mapped", tok.getPos().getType().getShortName());
+                    MorphologicalFeatures morphFeatures = tok.getMorph();
                     setNonNullFeature(a, "animacy", morphFeatures.getAnimacy());
                     setNonNullFeature(a, "aspect", morphFeatures.getAspect());
                     setNonNullFeature(a, "case", morphFeatures.getCase());

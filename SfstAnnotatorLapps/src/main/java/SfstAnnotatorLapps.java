@@ -138,12 +138,17 @@ public class SfstAnnotatorLapps implements ProcessingService {
                 // TokenBuilder<Token, Sentence> tb = new TokenBuilder<Token, Sentence>(Token.class,
                 //    Sentence.class);
                 // tb.buildTokens(jCas, aText);
-                JCas newJCas = createJcas(lang_text[0], lang_text[1].trim(), lang_text[2].trim());
+                String variant = lang_text[1].trim();
+                JCas newCas;
+                if(variant.equals("null"))
+                    newCas = createJcas(lang_text[0], null, lang_text[2].trim());
+                else
+                    newCas = createJcas(lang_text[0], variant, lang_text[2].trim());
                 // System.out.println(ae.getAnalysisEngineMetaData());
                 int id = 0;
                 int sub_id = -1;
                 int old_start = 0;
-                for (MorphologicalFeatures morphFeatures : JCasUtil.select(newJCas, MorphologicalFeatures.class)) {
+                for (MorphologicalFeatures morphFeatures : JCasUtil.select(newCas, MorphologicalFeatures.class)) {
                     int start = morphFeatures.getBegin();
                     int end = morphFeatures.getEnd();
                     if (start != old_start){

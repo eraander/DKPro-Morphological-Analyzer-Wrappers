@@ -32,12 +32,15 @@ import org.lappsgrid.serialization.lif.Container;
 import org.lappsgrid.serialization.lif.View;
 import org.lappsgrid.vocabulary.Features;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 public class MateMorphTaggerLappsTest
 {
+    @Rule
+    public DkproTestContext testContext = new DkproTestContext();
 
     // this will be the sandbag
     protected WebService service;
@@ -100,6 +103,12 @@ public class MateMorphTaggerLappsTest
         long[] starts = {0L, 4L, 13L, 17L, 22L, 36L, 45L, 47L, 55L, 65L, 71L, 85L, 89L, 101L, 112L};
         long[] ends = {3L, 12L, 16L, 21L, 35L, 44L, 46L, 54L, 64L, 70L, 84L, 88L, 100L, 111L, 113L};
 
+        String[] posOriginal = { "PPER", "VVFIN", "ART", "ADV", "ADJA", "NN", "$,", "PRELS", "ADV",
+                "PIAT", "NN", "KON", "NN", "VVFIN", "$." };
+
+        String[] posMapped = { "POS_PRON", "POS_VERB", "POS_DET", "POS_ADV", "POS_ADJ", "POS_NOUN", "POS_PUNCT", "POS_PRON", "POS_ADV",
+                "POS_PRON", "POS_NOUN", "POS_CONJ", "POS_NOUN", "POS_VERB", "POS_PUNCT" };
+
         String[] words = {"Wir", "brauchen", "ein", "sehr", "kompliziertes", "Beispiel", ",", "welches", "möglichst",
         "viele", "Konstituenten", "und", "Dependenzen", "beinhaltet", "."};
 
@@ -150,6 +159,7 @@ public class MateMorphTaggerLappsTest
             assertEquals("Token " + i + ": wrong mood", moods[i], token.getFeature("mood"));
             assertEquals("Token " + i + ": wrong person", persons[i], token.getFeature("person"));
             assertEquals("Token " + i + ": wrong tense", tenses[i], token.getFeature("tense"));
+            assertEquals("Token " + i + ": wrong pos", posOriginal[i], token.getFeature(Features.Token.POS));
         }
     }
 
@@ -167,6 +177,14 @@ public class MateMorphTaggerLappsTest
         long[] starts = {0L, 5L, 11L, 18L, 24L, 31L, 35L, 43L, 48L, 59L, 63L, 72L, 76L, 89L, 93L, 96L, 107L, 119L, 122L, 126L, 135L};
         long[] ends = {4L, 10L, 17L, 23L, 30L, 34L, 42L, 47L, 58L, 62L, 71L, 75L, 88L, 92L, 95L, 106L, 118L, 121L, 125L, 134L, 136L};
 
+        String[] posMapped = { "POS_PRON", "POS_VERB", "POS_NOUN", "POS_ADP", "POS_NOUN", "POS_ADP",
+                "POS_NOUN", "POS_ADV", "POS_ADJ", "POS_PRON", "POS_VERB", "POS_DET", "POS_NOUN",
+                "POS_CONJ", "POS_DET", "POS_ADJ", "POS_NOUN", "POS_CONJ", "POS_CONJ", "POS_ADJ",
+                "POS_PUNCT" };
+
+        String[] posOriginal = { "CLS", "V", "NC", "P", "NC", "P", "NC", "ADV", "ADJ", "PROREL",
+                "V", "DET", "NC", "CS", "DET", "ADJ", "NC", "CC", "CS", "ADJ", "PONCT" };
+
         String[] words = {"Nous", "avons", "besoin", "d\'une", "phrase", "par", "exemple", "très", "compliqué,",
                 "qui", "contient", "des", "constituants", "que", "de", "nombreuses", "dépendances", "et", "que", "possible", "."};
 
@@ -178,29 +196,6 @@ public class MateMorphTaggerLappsTest
                 "g=m|n=p|s=c", "g=m|n=p|p=3|s=rel", "g=f|n=p|s=ind", "g=f|n=p|s=qual", "g=f|n=p|s=c", "s=c", "s=s",
                 "g=m|n=s|s=qual", "s=s"};
 
-        String[] morphTagsExpected = {
-                "[  0,  4]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - Nous (g=m|n=p|p=1|s=suj)",
-                "[  5, 10]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - avons (m=ind|n=p|p=1|t=pst)",
-                "[ 11, 17]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - besoin (g=m|n=s|s=c)",
-                "[ 18, 23]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - d'une (_)",
-                "[ 24, 30]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - phrase (g=f|n=s|s=c)",
-                "[ 31, 34]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - par (_)",
-                "[ 35, 42]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - exemple (g=m|n=s|s=c)",
-                "[ 43, 47]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - très (_)",
-                "[ 48, 58]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - compliqué, (g=m|n=s|s=qual)",
-                "[ 59, 62]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - qui (g=m|n=p|p=3|s=rel)",
-                "[ 63, 71]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - contient (m=ind|n=s|p=3|t=pst)",
-                "[ 72, 75]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - des (g=m|n=p|s=ind)",
-                "[ 76, 88]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - constituants (g=m|n=p|s=c)",
-                "[ 89, 92]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - que (g=m|n=p|p=3|s=rel)",
-                "[ 93, 95]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - de (g=f|n=p|s=ind)",
-                "[ 96,106]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - nombreuses (g=f|n=p|s=qual)",
-                "[107,118]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - dépendances (g=f|n=p|s=c)",
-                "[119,121]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - et (s=c)",
-                "[122,125]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - que (s=s)",
-                "[126,134]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - possible (g=m|n=s|s=qual)",
-                "[135,136]     -     -    -    -    -     -    -    -     -      -  -    -    -    -     -      -     - . (s=s)"
-        };
 
         // String[] cases = {"nom", null, "acc", null, "acc", "acc", null, "acc", null, "acc", "acc", null, "acc", null, null};
         String[] numbers = {"p", "p", "s", null, "s", null, "s", null, "s", "p", "s", "p", "p", "p", "p", "p", "p", null, null, "s", null};
@@ -240,6 +235,7 @@ public class MateMorphTaggerLappsTest
             assertEquals("Token " + i + ": wrong person", persons[i], token.getFeature("p"));
             assertEquals("Token " + i + ": wrong s", s[i], token.getFeature("s"));
             assertEquals("Token " + i + ": wrong tense", tenses[i], token.getFeature("t"));
+            assertEquals("Token " + i + ": wrong pos", posOriginal[i], token.getFeature(Features.Token.POS));
         }
 
 
@@ -248,7 +244,7 @@ public class MateMorphTaggerLappsTest
 
     @Test
     public void testSpanish()
-            throws Exception
+            throws EOFException
     {
         // .assumeTrue(Runtime.getRuntime().maxMemory() >= 1000000000);
         String text = "Necesitamos una oración de ejemplo muy complicado , que "
@@ -260,6 +256,9 @@ public class MateMorphTaggerLappsTest
 
         long[] starts = {0L, 12L, 16L, 24L, 27L, 35L, 39L, 50L, 52L, 56L, 65L, 68L, 74L, 83L, 86L, 98L, 100L, 113L, 118L, 122L, 130L};
         long[] ends = {11L, 15L, 23L, 26L, 34L, 38L, 49L, 51L, 55L, 64L, 67L, 73L, 82L, 85L, 97L, 99L, 112L, 117L, 121L, 129L, 131L};
+
+
+        String[] posOriginal = { "v", "d", "n", "s", "n", "r", "a", "f", "p", "v", "d", "a", "n", "s", "n", "c", "n", "c", "v", "a", "f"};
 
         String[] words = {"Necesitamos", "una", "oración", "de", "ejemplo", "muy", "complicado", ",", "que",
                 "contiene", "la", "mayor", "cantidad", "de", "componentes", "y", "dependencias", "como", "sea", "posible", "."};
@@ -290,6 +289,8 @@ public class MateMorphTaggerLappsTest
         String[] puncts = {null, null, null, null, null, null, null, "comma", null, null, null, null, null,
                 null, null, null, null, null, null, null, "period"};
 
+
+
         Container container = Serializer.parse(data, DataContainer.class).getPayload();
         assertEquals("Text not set correctly", text.trim(), container.getText());
 
@@ -304,6 +305,7 @@ public class MateMorphTaggerLappsTest
         if (annotations.size() != 21) {
             fail(String.format("Expected 21 annotations. Found %d", annotations.size()));
         }
+
 
         for (int i = 0; i < annotations.size(); i++){
             Annotation token = annotations.get(i);
@@ -320,24 +322,7 @@ public class MateMorphTaggerLappsTest
             assertEquals("Token " + i + ": wrong posfunction", posfunctions[i], token.getFeature("posfunction"));
             assertEquals("Token " + i + ": wrong punct", puncts[i], token.getFeature("punct"));
             assertEquals("Token " + i + ": wrong tense", tenses[i], token.getFeature("tense"));
+            assertEquals("Token " + i + ": wrong pos", posOriginal[i], token.getFeature(Features.Token.POS));
         }
     }
-
-    private JCas runTest(String aLanguage, String aText)
-            throws Exception
-    {
-        // Assume.assumeTrue(Runtime.getRuntime().maxMemory() >= 2000000000);
-
-        AssumeResource.assumeResource(MateMorphTagger.class, "morphtagger", aLanguage, null);
-
-        AnalysisEngineDescription lemma = createEngineDescription(MateLemmatizer.class);
-        AnalysisEngineDescription morphTag = createEngineDescription(MateMorphTagger.class);
-
-        AnalysisEngineDescription aggregate = createEngineDescription(lemma, morphTag);
-
-        return TestRunner.runTest(aggregate, aLanguage, aText);
-    }
-
-    @Rule
-    public DkproTestContext testContext = new DkproTestContext();
 }

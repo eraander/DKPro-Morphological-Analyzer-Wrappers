@@ -98,7 +98,8 @@ public class RfTaggerLappsTest
     public void testCzech()
             throws Exception
     {
-        String input = "cz;  Vzal mi pochodeň a porazit je na medvěda tváři .";
+        String text = "Vzal mi pochodeň a porazit je na medvěda tváři .";
+        String input = "cz;  null; " + text;
         String data = service.execute(input);
 
         long[] starts = {0L, 5L, 8L, 17L, 19L, 27L, 30L, 33L, 41L, 47L};
@@ -117,7 +118,7 @@ public class RfTaggerLappsTest
         "N.N.F.S.6.-.-.-.-.-.A.-.-.-.-", "Z.:.-.-.-.-.-.-.-.-.-.-.-.-.-"};
 
         Container container = Serializer.parse(data, DataContainer.class).getPayload();
-        assertEquals("Text not set correctly", "Vzal mi pochodeň a porazit je na medvěda tváři .", container.getText());
+        assertEquals("Text not set correctly", text, container.getText());
         // Now, see all annotations in current view is correct
         List<View> views = container.getViews();
         if (views.size() != 1) {
@@ -148,9 +149,9 @@ public class RfTaggerLappsTest
     public void testGerman()
             throws Exception
     {
-        String input = "de; Er nahm meine Fackel und schlug sie dem Bär ins Gesicht .";
+        String text = "Er nahm meine Fackel und schlug sie dem Bär ins Gesicht .";
+        String input = "de; null; " + text;
         String data = service.execute(input);
-        System.out.println(data);
         long[] starts = {0L, 3L, 8L, 14L, 21L, 25L, 32L, 36L, 40L, 44L, 48L, 56L};
         long[] ends = {2L, 7L, 13L, 20L, 24L, 31L, 35L, 39L, 43L, 47L, 55L, 57L};
         String[] words = { "Er", "nahm", "meine", "Fackel", "und", "schlug", "sie", "dem", "Bär",
@@ -177,7 +178,7 @@ public class RfTaggerLappsTest
                 "N.Reg.Dat.Sg.Masc", "APPRART.Acc.Sg.Neut", "N.Reg.Acc.Sg.Neut", "SYM.Pun.Sent"};
 
         Container container = Serializer.parse(data, DataContainer.class).getPayload();
-        assertEquals("Text not set correctly", "Er nahm meine Fackel und schlug sie dem Bär ins Gesicht .", container.getText());
+        assertEquals("Text not set correctly", text, container.getText());
         // Now, see all annotations in current view is correct
         List<View> views = container.getViews();
         if (views.size() != 1) {
@@ -215,7 +216,8 @@ public class RfTaggerLappsTest
     public void testHungarian()
         throws Exception
     {
-        String input = "hu; Elvette a fáklyát , és megverte őket, hogy a medve arcára .";
+        String text = "Elvette a fáklyát , és megverte őket, hogy a medve arcára .";
+        String input = "hu; null; " + text;
         String data = service.execute(input);
         long[] starts = {0L, 8L, 10L, 18L, 20L, 23L, 32L, 38L, 43L, 45L, 51L, 58L};
         long[] ends = {7L, 9L, 17L, 19L, 22L, 31L, 37L, 42L, 44L, 50L, 57L, 59L};
@@ -231,7 +233,7 @@ public class RfTaggerLappsTest
                 "T.f", "N.c.s.n", "N.c.s.s", "IP.sent.period"};
 
         Container container = Serializer.parse(data, DataContainer.class).getPayload();
-        assertEquals("Text not set correctly", "Elvette a fáklyát , és megverte őket, hogy a medve arcára .", container.getText());
+        assertEquals("Text not set correctly", text, container.getText());
         // Now, see all annotations in current view is correct
         List<View> views = container.getViews();
         if (views.size() != 1) {
@@ -259,7 +261,8 @@ public class RfTaggerLappsTest
     public void testRussian()
         throws Exception
     {
-        String input = "ru; Он взял свой факел и избили их в лицо медведя .";
+        String text = "Он взял свой факел и избили их в лицо медведя .";
+        String input = "ru; null; " + text;
         String data = service.execute(input);
         long[] starts = {0L, 3L, 8L, 13L, 19L, 21L, 28L, 31L, 33L, 38L, 46L};
         long[] ends = {2L, 7L, 12L, 18L, 20L, 27L, 30L, 32L, 37L, 45L, 47L};
@@ -276,7 +279,7 @@ public class RfTaggerLappsTest
         "C", "V.m.i.s.-.p.-.a.-.p.-", "P.-.3.-.p.a.n", "S.p.-.a", "N.c.n.s.a.n.-", "N.c.m.s.g.y.-", "SENT"};
 
         Container container = Serializer.parse(data, DataContainer.class).getPayload();
-        assertEquals("Text not set correctly", "Он взял свой факел и избили их в лицо медведя .", container.getText());
+        assertEquals("Text not set correctly", text, container.getText());
         // Now, see all annotations in current view is correct
         List<View> views = container.getViews();
         if (views.size() != 1) {
@@ -305,7 +308,8 @@ public class RfTaggerLappsTest
     public void testSlovak()
         throws Exception
     {
-        String input = "sk; Vzal mi pochodeň a poraziť ich na medveďa tvári .";
+        String text = "Vzal mi pochodeň a poraziť ich na medveďa tvári .";
+        String input = "sk; null; " + text;
         String data = service.execute(input);
 
         long[] starts = {0L, 5L, 8L, 17L, 19L, 27L, 31L, 34L, 42L, 48L};
@@ -323,7 +327,7 @@ public class RfTaggerLappsTest
                 "E.u.4.-.:-", "SS.m.s.4.-.:-", "VK.e.s.c.+.:-", "Z.:-"};
 
         Container container = Serializer.parse(data, DataContainer.class).getPayload();
-        assertEquals("Text not set correctly", "Vzal mi pochodeň a poraziť ich na medveďa tvári .", container.getText());
+        assertEquals("Text not set correctly", text, container.getText());
         // Now, see all annotations in current view is correct
         List<View> views = container.getViews();
         if (views.size() != 1) {
@@ -351,7 +355,8 @@ public class RfTaggerLappsTest
     public void testSlovene()
         throws Exception
     {
-        String input = "sl; Vzel mojo baklo in ga premagal na obrazu medveda .";
+        String text = "Vzel mojo baklo in ga premagal na obrazu medveda .";
+        String input = "sl; null; " + text;
         String data = service.execute(input);
 
         long[] starts = {0L, 5L, 10L, 16L, 19L, 22L, 31L, 34L, 41L, 49L};
@@ -369,7 +374,7 @@ public class RfTaggerLappsTest
                 "S.l", "N.c.m.s.l", "N.c.m.s.g", "Z.p.-"};
 
         Container container = Serializer.parse(data, DataContainer.class).getPayload();
-        assertEquals("Text not set correctly", "Vzel mojo baklo in ga premagal na obrazu medveda .", container.getText());
+        assertEquals("Text not set correctly", text, container.getText());
         // Now, see all annotations in current view is correct
         List<View> views = container.getViews();
         if (views.size() != 1) {
